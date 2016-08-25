@@ -1,5 +1,5 @@
 {
-  "name": "electron-spellchecker",
+  "name": "@felixrieseberg/electron-spellchecker",
   "version": "0.2.13",
   "description": "Implement spellchecking, correctly",
   "scripts": {
