@@ -165,7 +165,7 @@ export default class SpellCheckHandler {
   set automaticallyIdentifyLanguages(value) {
     this._automaticallyIdentifyLanguages = !!value;
 
-    // Calling `setDictionary` on the macOS implementation of `@paulcbetts/spellchecker`
+    // Calling `setDictionary` on the macOS implementation of `@felixrieseberg/spellchecker`
     // is the only way to set the `automaticallyIdentifyLanguages` property on the
     // native NSSpellchecker. Calling switchLanguage with a language will set it `false`,
     // while calling it with an empty language will set it to `true`
