@@ -37,7 +37,10 @@ let Spellchecker;
 
 let d = require('debug')('electron-spellchecker:spell-check-handler');
 
-const cld = requireTaskPool(require.resolve('./cld2'));
+const cld = process.env.ELECTRON_SPELLCHECKER_CLD_NO_TASKPOOL
+  ? require('./cld2')
+  : requireTaskPool(require.resolve('./cld2'));
+
 let fallbackLocaleTable = null;
 let webFrame = (process.type === 'renderer' ?
   require('electron').webFrame :
