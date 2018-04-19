@@ -365,14 +365,21 @@ export default class SpellCheckHandler {
     if (isMac) return;
 
     try {
-      langWithoutLocale = await this.detectLanguageForText(inputText.substring(0, 512));
+      if (process.env.ELECTRON_SPELLCHECKER_DETECT_LANGUAGE) {
+        langWithoutLocale = await this.detectLanguageForText(inputText.substring(0, 512));
+      }
     } catch (e) {
       d(`Couldn't detect language for text of length '${inputText.length}': ${e.message}, ignoring sample`);
       return;
     }
 
-    let lang = await this.getLikelyLocaleForLanguage(langWithoutLocale);
-    await this.switchLanguage(lang);
+    if (process.env.ELECTRON_SPELLCHECKER_GET_LIKELY_LOCALE) {
+      let lang = await this.getLikelyLocaleForLanguage(langWithoutLocale);
+    }
+
+    if (process.env.ELECTRON_SPELLCHECKER_HINT_SWITCH_LANGUAGE) {
+      await this.switchLanguage(lang);
+    }
   }
 
   /**
@@ -399,12 +406,14 @@ export default class SpellCheckHandler {
     // Set language on Linux & Windows (Hunspell)
     this.isMisspelledCache.reset();
 
-    try {
-      const {dictionary, language} = await this.loadDictionaryForLanguageWithAlternatives(langCode);
-      actualLang = language; dict = dictionary;
-    } catch (e) {
-      d(`Failed to load dictionary ${langCode}: ${e.message}`);
-      throw e;
+    if (process.env.ELECTRON_SPELLCHECKER_LOAD_DICTIONARIES) {
+      try {
+        const {dictionary, language} = await this.loadDictionaryForLanguageWithAlternatives(langCode);
+        actualLang = language; dict = dictionary;
+      } catch (e) {
+        d(`Failed to load dictionary ${langCode}: ${e.message}`);
+        throw e;
+      }
     }
 
     if (!dict) {
@@ -416,7 +425,7 @@ export default class SpellCheckHandler {
     }
 
     d(`Setting current spellchecker to ${actualLang}, requested language was ${langCode}`);
-    if (this.currentSpellcheckerLanguage !== actualLang || !this.currentSpellchecker) {
+    if (this.currentSpellcheckerLanguage !== actualLang || !this.currentSpellchecker && process.env.ELECTRON_SPELLCHECKER_SWITCH_NEW_SPELLCHECKER) {
       d(`Creating node-spellchecker instance`);
 
       this.currentSpellchecker = new Spellchecker();
@@ -543,7 +552,9 @@ export default class SpellCheckHandler {
    */
   async getLikelyLocaleForLanguage(language) {
     let lang = language.toLowerCase();
-    if (!this.likelyLocaleTable) this.likelyLocaleTable = await this.buildLikelyLocaleTable();
+    if (!this.likelyLocaleTable && process.env.ELECTRON_SPELLCHECKER_BUILD_LIKELY_LOCALE_TABLE) {
+      this.likelyLocaleTable = await this.buildLikelyLocaleTable();
+    }
 
     if (this.likelyLocaleTable[lang]) return this.likelyLocaleTable[lang];
     this.fallbackLocaleTable = this.fallbackLocaleTable || require('./fallback-locales');
